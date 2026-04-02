@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import yfinance as yf
 from fetch_data import fetch_stock_data
 
 # Load current S&P 500 stocks and hold in memory from Wikipedia. Add SPY to compare to individual stocks.
@@ -13,6 +14,11 @@ def get_sp500_tickers():
     tickers.append("SPY")
     tickers.sort()
     return tickers
+
+@st.cache_data
+def get_risk_free_rate():
+    irx_data = yf.download("^IRX", period="5d")
+    return irx_data["Close"].iloc[-1].values[0] / 100
 
 # Greeting for webpage
 st.title("Portfolio Performance Dashboard")
@@ -49,7 +55,7 @@ volatility = daily_returns.std()
 annualized_volatility = volatility * np.sqrt(252)
 
 # Sharpe ratio
-risk_free_rate = 0.043
+risk_free_rate = get_risk_free_rate()
 annual_return = cumulative_returns.iloc[-1] - 1
 sharpe_ratio = (annual_return - risk_free_rate) / annualized_volatility
 
